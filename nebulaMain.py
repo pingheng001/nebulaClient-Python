@@ -190,11 +190,11 @@ if __name__ == "__main__":
     # json 输出
     print(json_value(concept_resp))
 
-    # concept_resp, entity_resp = nebula.getCommonEntityConcept(name, type, steps=3, limit=2000)
-    # print("概念")
-    # print_resp(concept_resp)
-    # print("上位实体")
-    # print_resp(entity_resp)
+    concept_resp, entity_resp = nebula.getCommonEntityConcept(name, type, steps=3, limit=2000)
+    print("概念")
+    print_resp(concept_resp)
+    print("上位实体")
+    print_resp(entity_resp)
 
 
 
