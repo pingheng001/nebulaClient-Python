@@ -2,11 +2,11 @@ Nebula python 客户端使用说明
 --------------------------------------------
 环境需求
 
-python==2.7
+python==3.7
 
-prettytable==1.0.1
+prettytable==2.1.0
 
-nebula-python==1.1.1.post1	
+nebula2-python==2.0.0	
 
 ## 根据特定「名称+类别」的实体，从数据库中获取概念、上位实体、同意实体等关系数据
 
@@ -31,10 +31,10 @@ nebula-python==1.1.1.post1
 ## 结果输出
 # 制表
 ```bash
-print_value(concept_resp.column_names, concept_resp.rows)
+print_resp(concept_resp)
 ```
 
 # json
 ```bash
-json_value(concept_resp.rows)
+json_value(concept_resp)
 ```
