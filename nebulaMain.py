@@ -122,53 +122,88 @@ class Nebula:
     def __del__(self):
         self.session.release()
 
-    def getEntityConcept(self, name, type, steps=3, limit=1000):
+    def getEntityConcept(self, name, type, steps=1, limit=-1):
         '''
-        # 根据特定「名称+类别」的实体，从数据库中获取概念、上位实体、同意实体等关系数据
+        # 根据特定「名称+类别」的实体，从数据库中获取概念数据
         :param name:
         :param type:
         :param steps:遍历多少跳
         :param limit:输出数据量限制
         :return:
         '''
-
-        # 概念
-        concept_resp = self.session.execute('LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
+        executeStr = 'LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
             entity.name AS name | GO 1 TO {} STEPS FROM $-.VertexID OVER isA WHERE length($$.concept.name) != 0 YIELD \
-            DISTINCT $-.name as name, $$.concept.name as conceptName | LIMIT {};'.format(name, type, steps, limit))
+            DISTINCT $-.name as name, $$.concept.name as conceptName'.format(name, type, steps)
+        if limit >= 1:
+            executeStr += "| LIMIT {};".format(limit)
+        else:
+            executeStr += ";"
+        # 概念
+        concept_resp = self.session.execute(executeStr)
+
+        return concept_resp
+
+    def getEntityUpEntity(self, name, type, steps=1, limit=-1):
+        # 根据特定「名称+类别」的实体，从数据库中获取上位实体数据
         # 上位实体
-        entity_resp = self.session.execute('LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
+        executeStr = 'LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
             entity.name AS name | GO 1 TO {} STEPS FROM $-.VertexID OVER isA WHERE length($$.entity.name) != 0 YIELD \
-            DISTINCT $-.name as name, $$.entity.name as entityName | LIMIT {};'.format(name, type, steps, limit))
+            DISTINCT $-.name as name, $$.entity.name as entityName'.format(name, type, steps)
+        if limit >= 1:
+            executeStr += "| LIMIT {};".format(limit)
+        else:
+            executeStr += ";"
+        entity_resp = self.session.execute(executeStr)
+        return entity_resp
+
+    def getEntitySonEntity(self, name, type, steps=1, limit=-1):
+        # 根据特定「名称+类别」的实体，从数据库中获取同义实体数据
         # 同义实体
-        synonym_resp = self.session.execute('LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
+        executeStr = 'LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
             entity.name AS name | GO 1 TO {} STEPS FROM $-.VertexID OVER synonym YIELD DISTINCT $-.name as name, \
-            $$.entity.name as entityName | LIMIT {};'.format(name, type, steps, limit))
+            $$.entity.name as entityName'.format(name, type, steps)
+        if limit >= 1:
+            executeStr += "| LIMIT {};".format(limit)
+        else:
+            executeStr += ";"
+        synonym_resp = self.session.execute(executeStr)
+        return synonym_resp
 
-        return concept_resp, entity_resp, synonym_resp
-
-    def getCommonEntityConcept(self, name, type, steps=3, limit=1000):
+    def getCommonConceptEntity(self, name, type, steps=1, limit=-1):
         '''
-        # 根据特定「名称+类别」的实体，从数据库中获取同概念下其他实体、相同上位实体下的其他实体
+        # 根据特定「名称+类别」的实体，从数据库中获取同概念下其他实体
         :param name:
         :param type:
         :param steps:遍历多少跳
         :param limit:输出数据量限制
         :return:
         '''
-
-        # 概念
-        concept_resp = self.session.execute('LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
+        executeStr = 'LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
             entity.name AS name | GO 1 TO {} STEPS FROM $-.VertexID OVER isA WHERE length($$.concept.name) != 0 YIELD \
             DISTINCT $-.name as name, $$.concept.name as conceptName, isA._dst as id | GO FROM $-.id OVER isA REVERSELY\
-             YIELD DISTINCT $-.conceptName as name, $$.entity.name as commonName | LIMIT {};'.format(name, type, steps, limit))
+             YIELD DISTINCT $-.conceptName as name, $$.entity.name as commonName'.format(name, type, steps)
+        if limit >= 1:
+            executeStr += "| LIMIT {};".format(limit)
+        else:
+            executeStr += ";"
+        # 概念
+        concept_resp = self.session.execute(executeStr)
+
+        return concept_resp
+
+    def getCommonUpEntity(self, name, type, steps=1, limit=-1):
+        # 根据特定「名称+类别」的实体，从数据库中获取相同上位实体下的其他实体
         # 上位实体
-        entity_resp = self.session.execute('LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
+        executeStr = 'LOOKUP ON entity WHERE entity.name == "{}" AND entity.type == "{}" YIELD \
             entity.name AS name | GO 1 TO {} STEPS FROM $-.VertexID OVER isA WHERE length($$.entity.name) != 0 YIELD \
             DISTINCT $-.name as name, $$.entity.name as entityName, isA._dst as id | GO FROM $-.id OVER isA REVERSELY \
-            YIELD DISTINCT $-.entityName as name, $$.entity.name as commonName | LIMIT {};'.format(name, type, steps, limit))
-
-        return concept_resp, entity_resp
+            YIELD DISTINCT $-.entityName as name, $$.entity.name as commonName'.format(name, type, steps)
+        if limit >= 1:
+            executeStr += "| LIMIT {};".format(limit)
+        else:
+            executeStr += ";"
+        entity_resp = self.session.execute(executeStr)
+        return entity_resp
 
 
 if __name__ == "__main__":
@@ -179,7 +214,10 @@ if __name__ == "__main__":
 
     nebula = Nebula()
 
-    concept_resp, entity_resp, synonym_resp = nebula.getEntityConcept(name, type, steps=3, limit=5)
+    concept_resp = nebula.getEntityConcept(name, type, steps=3)
+    entity_resp = nebula.getEntityUpEntity(name, type)
+    synonym_resp = nebula.getEntitySonEntity(name, type)
+
     print("概念")
     print_resp(concept_resp)
     print("上位实体")
@@ -190,7 +228,9 @@ if __name__ == "__main__":
     # json 输出
     print(json_value(concept_resp))
 
-    concept_resp, entity_resp = nebula.getCommonEntityConcept(name, type, steps=3, limit=2000)
+    concept_resp = nebula.getCommonConceptEntity(name, type, steps=3, limit=10)
+    entity_resp = nebula.getCommonUpEntity(name, type, limit=10)
+    # concept_resp, entity_resp = nebula.getCommonEntityConcept(name, type, steps=3, limit=2000)
     print("概念")
     print_resp(concept_resp)
     print("上位实体")

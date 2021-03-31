@@ -7,26 +7,42 @@ Nebula python 客户端使用说明
     prettytable==2.1.0
     nebula2-python==2.0.0
 ```	
-
-## 根据特定「名称+类别」的实体，从数据库中获取概念、上位实体、同意实体等关系数据
-
+## 根据特定「名称+类别」的实体，从数据库中获取概念数据
 
 ```bash
-    name = "苹果手机"
-    type = "PRODUCT"
     nebula = Nebula()
-    concept_resp, entity_resp, synonym_resp = nebula.getEntityConcept(name, type)
+    concept_resp = nebula.getEntityConcept(name, type, steps=3)
 ```
 
-## 根据特定「名称+类别」的实体，从数据库中获取同概念下其他实体、相同上位实体下的其他实体
-
+## 根据特定「名称+类别」的实体，从数据库中获取上位实体数据
 
 ```bash
-    name = "苹果手机"
-    type = "PRODUCT"
     nebula = Nebula()
-    concept_resp, entity_resp = nebula.getCommonEntityConcept(name, type)
+    entity_resp = nebula.getEntityUpEntity(name, type)
 ```
+
+
+## 根据特定「名称+类别」的实体，从数据库中获取同义实体数据
+
+```bash
+    nebula = Nebula()
+    synonym_resp = synonym_resp = nebula.getEntitySonEntity(name, type)
+```
+
+## 根据特定「名称+类别」的实体，从数据库中获取同概念下其他实体
+
+```bash
+    nebula = Nebula()
+    concept_resp = nebula.getCommonConceptEntity(name, type, steps=3, limit=10)
+```
+
+## 根据特定「名称+类别」的实体，从数据库中获取相同上位实体下的其他实体
+
+```bash
+    nebula = Nebula()
+    entity_resp = nebula.getCommonUpEntity(name, type, limit=10)
+```
+
 
 ## 结果输出
 # 制表
